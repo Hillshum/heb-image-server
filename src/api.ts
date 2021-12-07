@@ -2,7 +2,7 @@ import express from "express";
 import { Op } from "sequelize";
 import { sequelize, Image, DetectedObject } from "./db";
 import axios from 'axios';
-import { detectImageUrl } from "./detectObjects";
+import { detectImageUrl, detectImageBlob } from "./detectObjects";
 
 
 interface UploadParams {
@@ -13,7 +13,7 @@ interface UploadParams {
 }
 
 const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: express.Response) => {
-    let image: Blob;
+    let image: Blob; 
     if (req.body.url) {
         // fetch image
         try {
@@ -23,11 +23,11 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
         } catch (e) {
             // TODO: Improve this
             console.error(e);
-            res.sendStatus(400);
+            return res.sendStatus(400);
         }
     // } else if (req.body.imageBody) {
     //     // process image
-    //     image =  new Blob();
+    //     image = Buffer.from(req.body.imageBody, 'base64');
     } else {
         res.sendStatus(400);
         return;
@@ -35,11 +35,16 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
 
     let detected: DetectedObject[] = [];
     if (req.body.detectObjects) {
-        detected =  await detectImageUrl(req.body.url)
+        if (req.body.url) {
+            detected =  await detectImageUrl(req.body.url)
+        } else if (req.body.imageBody) {
+            // detected = await detectImageBlob(image!);
+        }
+
     }
     
     console.log(detected)
-    const imageRecord = await Image.create({contents: image!, label: req.body.label})
+    const imageRecord = await Image.create({contents: image,  label: req.body.label})
    
     await imageRecord.setObjects(detected)
 
