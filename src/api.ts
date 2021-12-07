@@ -14,13 +14,13 @@ interface UploadParams {
 }
 
 const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: express.Response) => {
-    let image: Blob; 
+    let image: string; 
     if (req.body.url) {
         // fetch image
         try {
 
-            const resp = await axios.get(req.body.url, {responseType: 'blob'})
-            image = resp.data;
+            const resp = await axios.get(req.body.url, {responseType: 'arraybuffer'})
+            image = resp.data.toString('base64');
         } catch (e) {
             // TODO: Improve this
             console.error(e);
@@ -28,8 +28,7 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
         }
     } else if (req.body.imageBody) {
         // process image
-        const imageBuf = Buffer.from(req.body.imageBody, 'base64');
-        image = new Blob([new Uint32Array(imageBuf)])
+        image = req.body.imageBody
     } else {
         res.sendStatus(400);
         return;
@@ -52,6 +51,7 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
     const resp = {
         id: imageRecord.id,
         label: imageRecord.label,
+        path: `/actualImage/${imageRecord.id}`,
         objects: detected.map(d => d.name),
     }
 
@@ -78,8 +78,9 @@ const readImages = async (req: express.Request, res: express.Response) => {
     const response = await Promise.all(images.map(async image => {
         const objects = image.objects || await image.getObjects() ;
         return {
-            label: image.get().label,
-            id: image.get().id,
+            label: image.label,
+            id: image.id,
+            path: `/actualImage/${image.id}`,
             objects: objects.map(ob => ob.name)
         }
     }))
@@ -96,9 +97,10 @@ const getImageMetadata = async (req: express.Request, res: express.Response) => 
 
     const objects = image.objects || [];
     const response = {
-        id: image.get().id,
-        label: image.get().label,
-        objects: objects.map(ob => ob.name)
+        id: image.id,
+        label: image.label,
+        objects: objects.map(ob => ob.name),
+        path: `/actualImage/${image.id}`
     }
 
     return res.send(response)
@@ -111,10 +113,12 @@ const getImage = async (req: express.Request, res: express.Response) => {
     }
 
     const contents = image.get().contents;
+    const buff = Buffer.from(contents, 'base64')
     res.writeHead(200, {
-        'Content-Type': 'image/jpg',
+        'Content-Type': 'image/jpeg',
+        'Content-Length': buff.byteLength,
     })
-    return res.end(contents);
+    return res.end(buff);
 }
 
 export {uploadImage, readImages, getImageMetadata, getImage}

@@ -8,7 +8,7 @@ const sequelize = new Sequelize('heb', 'heb', 'herebetter', {
 import { Model, DataTypes } from "sequelize";
 
 interface ImageAttributes {
-    contents: Blob;
+    contents: string;
     id: number;
     label: string;
 }
@@ -18,7 +18,7 @@ interface ImageCreationAttributes extends Optional<ImageAttributes, 'id' |'label
 class Image extends Model<ImageAttributes, ImageCreationAttributes> implements ImageAttributes {
     public id!: number;
     public label!: string;
-    public contents!: Blob
+    public contents!: string
 
      // timestamps!
     public readonly createdAt!: Date;
@@ -37,7 +37,7 @@ Image.init({
         primaryKey: true
     },
     contents: {
-        type: DataTypes.BLOB,
+        type: DataTypes.TEXT,
     },
     label: {
         type: DataTypes.TEXT,
