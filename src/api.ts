@@ -51,6 +51,20 @@ const readImages = async (req: express.Request, res: express.Response) => {
     
 }
 
+const getImageMetadata = async (req: express.Request, res: express.Response) => {
+    const image = await Image.findByPk(req.params.id);
+    if (!image) {
+        return res.sendStatus(404);
+    }
+
+    const response = {
+        id: image.get().id,
+        label: image.get().label,
+    }
+
+    return res.send(response)
+}
+
 const getImage = async (req: express.Request, res: express.Response) => {
     const image = await Image.findByPk(req.params.id);
     if (!image) {
@@ -61,5 +75,5 @@ const getImage = async (req: express.Request, res: express.Response) => {
     return res.send(image.get().contents);
 }
 
-export {uploadImage, readImages, getImage}
+export {uploadImage, readImages, getImageMetadata, getImage}
 
