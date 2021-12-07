@@ -5,7 +5,7 @@ const API_BASE = 'https://api.imagga.com/v2/tags?image_url='
 
 const API_AUTH_HEADER = 'Basic YWNjXzQwNjkwYmNmZmQwN2Y4MjpmOTUzZjk2MzA0YTdlMGJkZjRiYmYyM2IzYWIzM2U4Mg=='
 
-const MIN_CONFIDENCE = 90;
+const MIN_CONFIDENCE = 50;
 
 interface Tag {
     en: string;
