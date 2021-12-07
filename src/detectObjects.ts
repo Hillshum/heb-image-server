@@ -1,7 +1,8 @@
 import  axios from "axios";
-
+import FormData from 'form-data';
 import { DetectedObject } from "./db";
 const API_BASE = 'https://api.imagga.com/v2/tags?image_url='
+const API_BASE_UPLOADED = 'https://api.imagga.com/v2/tags?image_upload_id='
 const API_UPLOAD_PATH = 'https://api.imagga.com/v2/uploads'
 
 const API_AUTH_HEADER = 'Basic YWNjXzQwNjkwYmNmZmQwN2Y4MjpmOTUzZjk2MzA0YTdlMGJkZjRiYmYyM2IzYWIzM2U4Mg=='
@@ -17,8 +18,9 @@ interface APIObject {
     tag: Tag;
 }
 
-const detectImageUrl = async (url: string) => {
-    const resp = await axios.get(API_BASE + url, {
+const detectImageInner = async (url: string) => {
+
+    const resp = await axios.get(url, {
         headers: {
             Authorization: API_AUTH_HEADER
         }
@@ -30,21 +32,30 @@ const detectImageUrl = async (url: string) => {
     return await processObjects(importantTags);
 }
 
-// const uploadImage = async (image: Buffer) => {
-//     const data = new FormData();
-//     data.append('image', image);
+const detectImageUrl = async (url: string) => {
+   return await detectImageInner(API_BASE + url) 
+}
+
+const uploadImage = async (image: string) => {
+    const data = new FormData();
+    data.append('image_base64', image);
     
 
-//     return axios.post(API_UPLOAD_PATH, data, {
-//         // headers: {
-//         //     'Content-Type': `multipart/form-data; boundary=${data}`
-//         // }
-//     })
-// }
+    const resp = await axios.post(API_UPLOAD_PATH, data, {
+        headers: {
+            ...data.getHeaders(),
+            Authorization: API_AUTH_HEADER,
+        }
+    })
+    console.log(resp);
+    return resp.data.result.upload_id;
+}
 
-const detectImageBlob = async (image: Blob) => {
+const detectImageBlob = async (image: string) => {
+    const id = await uploadImage(image);
 
-    return [];
+    console.log(`Id is ${id}`);
+    return await detectImageInner(API_BASE_UPLOADED + id)
 }
 
 const processObjects = async (objects: APIObject[]) => {

@@ -1,4 +1,5 @@
-import { Optional, Sequelize, ModelDefined, BelongsToManyGetAssociationsMixin, BelongsToManySetAssociationsMixin } from "sequelize";
+import { Optional, Sequelize, BelongsToManyGetAssociationsMixin, BelongsToManySetAssociationsMixin } from "sequelize";
+import {Blob} from 'buffer'
 
 const sequelize = new Sequelize('heb', 'heb', 'herebetter', {
     dialect: 'postgres',

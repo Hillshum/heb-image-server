@@ -1,6 +1,7 @@
 import express from "express";
 import { Op } from "sequelize";
-import { sequelize, Image, DetectedObject } from "./db";
+import { Image, DetectedObject } from "./db";
+import {Blob}  from 'buffer'
 import axios from 'axios';
 import { detectImageUrl, detectImageBlob } from "./detectObjects";
 
@@ -25,9 +26,10 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
             console.error(e);
             return res.sendStatus(400);
         }
-    // } else if (req.body.imageBody) {
-    //     // process image
-    //     image = Buffer.from(req.body.imageBody, 'base64');
+    } else if (req.body.imageBody) {
+        // process image
+        const imageBuf = Buffer.from(req.body.imageBody, 'base64');
+        image = new Blob([new Uint32Array(imageBuf)])
     } else {
         res.sendStatus(400);
         return;
@@ -38,12 +40,11 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
         if (req.body.url) {
             detected =  await detectImageUrl(req.body.url)
         } else if (req.body.imageBody) {
-            // detected = await detectImageBlob(image!);
+            detected = await detectImageBlob(req.body.imageBody);
         }
 
     }
     
-    console.log(detected)
     const imageRecord = await Image.create({contents: image,  label: req.body.label})
    
     await imageRecord.setObjects(detected)
@@ -51,7 +52,7 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
     const resp = {
         id: imageRecord.id,
         label: imageRecord.label,
-        objects: detected.map(d => d.name)
+        objects: detected.map(d => d.name),
     }
 
     res.send(resp)
