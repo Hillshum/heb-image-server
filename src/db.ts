@@ -1,34 +1,30 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize("sqlite::memory")
+const sequelize = new Sequelize('database', 'username', 'password', {
+    dialect: 'sqlite',
+    storage: 'db.sqlite'
+})
 
 import { Model, DataTypes } from "sequelize";
 
-class Image extends Model {}
 
-Image.init({
+sequelize.define('image', {
     contents: {
         type: DataTypes.BLOB,
     },
     label: {
         type: DataTypes.TEXT,
     }
-}, {
-    sequelize,
-    modelName: 'image'
 })
 
 
-class DetectedObject extends Model {}
 
-DetectedObject.init({
+sequelize.define('object', {
     name: DataTypes.STRING,
-}, {
-    sequelize,
-    modelName: 'object'
 })
 
-Image.belongsToMany(DetectedObject, {through: 'objects_in_images'})
-DetectedObject.belongsToMany(Image, {through: 'objects_in_images'})
+sequelize.models.image.belongsToMany(sequelize.models.object, {through: 'objects_in_images'})
+sequelize.models.object.belongsToMany(sequelize.models.image, {through: 'objects_in_images'})
 
+sequelize.sync()
 export { sequelize} 
