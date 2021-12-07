@@ -1,4 +1,5 @@
 import express from "express";
+import { Op } from "sequelize";
 import { sequelize, Image, DetectedObject } from "./db";
 import axios from 'axios';
 import { detectImageUrl } from "./detectObjects";
@@ -52,13 +53,28 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
 };
 
 const readImages = async (req: express.Request, res: express.Response) => {
-    const images = await Image.findAll({include: DetectedObject});
+    let images: Image[] = [];
+
+    if (req.query.objects) {
+        const searchTerms = req.query.objects;
+        const terms = String(searchTerms).split(',').map(s=>s.trim())
+
+        const obs = await DetectedObject.findAll({where: {name: {[Op.like]: {[Op.any]:terms}}}, include: (Image)})
+        
+
+        images = obs.flatMap(ob => ob.images || [])
+
+    } else {
+        images = await Image.findAll({include: DetectedObject});
+    }
+
     
     const response = await Promise.all(images.map(async image => {
+        const objects = image.objects || []
         return {
             label: image.get().label,
             id: image.get().id,
-            objects: (await image.getObjects()).map(ob => ob.name)
+            objects: objects.map(ob => ob.name)
         }
     }))
 
@@ -72,10 +88,11 @@ const getImageMetadata = async (req: express.Request, res: express.Response) => 
         return res.sendStatus(404);
     }
 
+    const objects = image.objects || [];
     const response = {
         id: image.get().id,
         label: image.get().label,
-        objects: (await image.getObjects()).map(ob => ob.name)
+        objects: objects.map(ob => ob.name)
     }
 
     return res.send(response)

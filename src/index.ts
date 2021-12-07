@@ -3,6 +3,8 @@ import { readImages, uploadImage, getImage, getImageMetadata } from "./api";
 
 const app = express();
 
+app.set('query parser', 'simple')
+
 const promiseWrapper = (handler : (req: express.Request, res: express.Response)=> Promise<any>) => {
     return (req: express.Request, res: express.Response, next:any ) => {
        handler(req, res).catch(next) 

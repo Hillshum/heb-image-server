@@ -25,6 +25,8 @@ class Image extends Model<ImageAttributes, ImageCreationAttributes> implements I
 
     public getObjects!: BelongsToManyGetAssociationsMixin<DetectedObject>
     public setObjects!: BelongsToManySetAssociationsMixin<DetectedObject, number>
+    
+    public objects?: DetectedObject[];
 
 }
 Image.init({
@@ -51,9 +53,14 @@ interface ObjectAttributes {
 class DetectedObject extends Model<ObjectAttributes> implements ObjectAttributes {
     public name!: string;
     public id!: number;
+
+    public readonly images?: Image[];
 }
 DetectedObject.init({
-    name: DataTypes.STRING,
+    name: {
+        type: DataTypes.STRING,
+        unique: true,
+    }
 }, {
     modelName: 'object',
     sequelize
