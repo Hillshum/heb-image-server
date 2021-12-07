@@ -1,7 +1,8 @@
 import { Optional, Sequelize, BelongsToManyGetAssociationsMixin, BelongsToManySetAssociationsMixin } from "sequelize";
-import {Blob} from 'buffer'
 
-const sequelize = new Sequelize('heb', 'heb', 'herebetter', {
+import { DB_INFO } from "./credentials";
+
+const sequelize = new Sequelize(DB_INFO.dbName, DB_INFO.username, DB_INFO.password, {
     dialect: 'postgres',
 })
 

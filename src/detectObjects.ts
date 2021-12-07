@@ -1,11 +1,11 @@
 import  axios from "axios";
 import FormData from 'form-data';
 import { DetectedObject } from "./db";
+import { API_AUTH_HEADER } from "./credentials";
 const API_BASE = 'https://api.imagga.com/v2/tags?image_url='
 const API_BASE_UPLOADED = 'https://api.imagga.com/v2/tags?image_upload_id='
 const API_UPLOAD_PATH = 'https://api.imagga.com/v2/uploads'
 
-const API_AUTH_HEADER = 'Basic YWNjXzQwNjkwYmNmZmQwN2Y4MjpmOTUzZjk2MzA0YTdlMGJkZjRiYmYyM2IzYWIzM2U4Mg=='
 
 const MIN_CONFIDENCE = 50;
 
@@ -26,7 +26,6 @@ const detectImageInner = async (url: string) => {
         }
     })
     const tags: APIObject[] = resp.data.result.tags;
-    console.log(tags);
     const importantTags = tags.filter(tag => tag.confidence > MIN_CONFIDENCE)
 
     return await processObjects(importantTags);
@@ -47,7 +46,6 @@ const uploadImage = async (image: string) => {
             Authorization: API_AUTH_HEADER,
         }
     })
-    console.log(resp);
     return resp.data.result.upload_id;
 }
 

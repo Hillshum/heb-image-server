@@ -36,10 +36,16 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
 
     let detected: DetectedObject[] = [];
     if (req.body.detectObjects) {
-        if (req.body.url) {
-            detected =  await detectImageUrl(req.body.url)
-        } else if (req.body.imageBody) {
-            detected = await detectImageBlob(req.body.imageBody);
+        try {
+
+            if (req.body.url) {
+                detected =  await detectImageUrl(req.body.url)
+            } else if (req.body.imageBody) {
+                detected = await detectImageBlob(req.body.imageBody);
+            }
+        } catch(e) {
+            console.error(e);
+            return res.sendStatus(500);
         }
 
     }
