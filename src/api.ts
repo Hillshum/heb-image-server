@@ -51,5 +51,15 @@ const readImages = async (req: express.Request, res: express.Response) => {
     
 }
 
-export {uploadImage, readImages}
+const getImage = async (req: express.Request, res: express.Response) => {
+    const image = await Image.findByPk(req.params.id);
+    if (!image) {
+        return res.sendStatus(404);
+    }
+
+    res.contentType('image/jpg');
+    return res.send(image.get().contents);
+}
+
+export {uploadImage, readImages, getImage}
 

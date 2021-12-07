@@ -1,5 +1,5 @@
 import express from 'express'
-import { readImages, uploadImage } from "./api";
+import { readImages, uploadImage, getImage } from "./api";
 
 const app = express();
 
@@ -11,6 +11,7 @@ const promiseWrapper = (handler : (req: express.Request, res: express.Response)=
 
 app.use(express.json());
 
+app.get('/actualImage/:id', promiseWrapper(getImage));
 app.post('/image', promiseWrapper(uploadImage))
 
 app.get('/images', promiseWrapper(readImages))
