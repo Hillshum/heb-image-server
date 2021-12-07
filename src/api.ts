@@ -32,7 +32,7 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
         return;
     }
 
-    let detected: any[] = [];
+    let detected: DetectedObject[] = [];
     if (req.body.detectObjects) {
         detected =  await detectImageUrl(req.body.url)
     }
@@ -42,8 +42,13 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
    
     await imageRecord.setObjects(detected)
 
+    const resp = {
+        id: imageRecord.id,
+        label: imageRecord.label,
+        objects: detected.map(d => d.name)
+    }
 
-    res.sendStatus(200)
+    res.send(resp)
 };
 
 const readImages = async (req: express.Request, res: express.Response) => {
