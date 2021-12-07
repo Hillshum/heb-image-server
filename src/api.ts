@@ -1,5 +1,5 @@
 import express from "express";
-import { sequelize } from "./db";
+import { sequelize, Image } from "./db";
 import axios from 'axios';
 
 
@@ -37,5 +37,19 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
     res.sendStatus(200)
 };
 
-export {uploadImage}
+const readImages = async (req: express.Request, res: express.Response) => {
+    const images = await Image.findAll();
+    
+    const response = images.map(image => {
+        return {
+            label: image.get().label,
+            id: image.get().id,
+        }
+    })
+
+    return res.send(response)
+    
+}
+
+export {uploadImage, readImages}
 

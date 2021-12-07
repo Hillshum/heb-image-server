@@ -1,5 +1,5 @@
 import express from 'express'
-import { uploadImage } from "./api";
+import { readImages, uploadImage } from "./api";
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.post('/image', promiseWrapper(uploadImage))
 
-app.get('/images', (req, res)=> {res.sendStatus(200)})
+app.get('/images', promiseWrapper(readImages))
 
 const port =process.env.PORT || 4040 
 app.listen(port, ()=> {
