@@ -75,7 +75,7 @@ const readImages = async (req: express.Request, res: express.Response) => {
 
     
     const response = await Promise.all(images.map(async image => {
-        const objects = image.objects || []
+        const objects = image.objects || await image.getObjects() ;
         return {
             label: image.get().label,
             id: image.get().id,
