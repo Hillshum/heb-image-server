@@ -1,6 +1,7 @@
 import express from "express";
-import { sequelize, Image } from "./db";
+import { sequelize, Image, DetectedObject } from "./db";
 import axios from 'axios';
+import { detectImageUrl } from "./detectObjects";
 
 
 interface UploadParams {
@@ -23,36 +24,45 @@ const uploadImage = async (req: express.Request<{}, {}, UploadParams>, res: expr
             console.error(e);
             res.sendStatus(400);
         }
-    } else if (req.body.imageBody) {
-        // process image
-        image =  new Blob();
+    // } else if (req.body.imageBody) {
+    //     // process image
+    //     image =  new Blob();
     } else {
         res.sendStatus(400);
         return;
     }
+
+    let detected: any[] = [];
+    if (req.body.detectObjects) {
+        detected =  await detectImageUrl(req.body.url)
+    }
     
-    await sequelize.models.image.create({contents: image!, label: req.body.label})
+    console.log(detected)
+    const imageRecord = await Image.create({contents: image!, label: req.body.label})
+   
+    await imageRecord.setObjects(detected)
 
 
     res.sendStatus(200)
 };
 
 const readImages = async (req: express.Request, res: express.Response) => {
-    const images = await Image.findAll();
+    const images = await Image.findAll({include: DetectedObject});
     
-    const response = images.map(image => {
+    const response = await Promise.all(images.map(async image => {
         return {
             label: image.get().label,
             id: image.get().id,
+            objects: (await image.getObjects()).map(ob => ob.name)
         }
-    })
+    }))
 
     return res.send(response)
     
 }
 
 const getImageMetadata = async (req: express.Request, res: express.Response) => {
-    const image = await Image.findByPk(req.params.id);
+    const image = await Image.findByPk(req.params.id, {include: DetectedObject});
     if (!image) {
         return res.sendStatus(404);
     }
@@ -60,6 +70,7 @@ const getImageMetadata = async (req: express.Request, res: express.Response) => 
     const response = {
         id: image.get().id,
         label: image.get().label,
+        objects: (await image.getObjects()).map(ob => ob.name)
     }
 
     return res.send(response)
@@ -71,8 +82,11 @@ const getImage = async (req: express.Request, res: express.Response) => {
         return res.sendStatus(404);
     }
 
-    res.contentType('image/jpg');
-    return res.send(image.get().contents);
+    const contents = image.get().contents;
+    res.writeHead(200, {
+        'Content-Type': 'image/jpg',
+    })
+    return res.end(contents);
 }
 
 export {uploadImage, readImages, getImageMetadata, getImage}
